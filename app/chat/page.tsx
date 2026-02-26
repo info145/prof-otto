@@ -139,6 +139,8 @@ function shouldAutoGenerateFlashcards(text: string): boolean {
 async function generateFlashcardsFromContext(body: {
   content?: string;
   chatContext?: string;
+  numPages?: number;
+  minCards?: number;
 }): Promise<GeneratedFlashcard[]> {
   const res = await fetch("/api/flashcards", {
     method: "POST",
@@ -150,10 +152,18 @@ async function generateFlashcardsFromContext(body: {
   if (!contentType.includes("application/json")) {
     throw new Error("Errore nella generazione. Riprova.");
   }
-  const data = JSON.parse(text) as {
+  if (!text.trim()) {
+    throw new Error("Risposta vuota dal server. Riprova.");
+  }
+  let data: {
     error?: string;
     flashcards?: GeneratedFlashcard[];
   };
+  try {
+    data = JSON.parse(text) as { error?: string; flashcards?: GeneratedFlashcard[] };
+  } catch {
+    throw new Error("Risposta non valida dal server flashcards. Riprova.");
+  }
   if (!res.ok) throw new Error(data.error || "Errore flashcard");
   return data.flashcards ?? [];
 }
@@ -179,6 +189,7 @@ export default function ChatPage() {
   const [pdfTextBySessionId, setPdfTextBySessionId] = useState<Record<string, string>>(
     defaultState.pdfTextBySessionId ?? {}
   );
+  const [pdfPagesBySessionId, setPdfPagesBySessionId] = useState<Record<string, number>>({});
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
   const [flashcardsLoading, setFlashcardsLoading] = useState(false);
@@ -333,8 +344,14 @@ export default function ChatPage() {
     if (!pdfText && !chatContext.trim()) return;
 
     setFlashcardsLoading(true);
-    const body: { content?: string; chatContext?: string } = pdfText
-      ? { content: pdfText, chatContext: chatContext ? chatContext.slice(0, 4000) : undefined }
+    const numPages = pdfPagesBySessionId[currentSessionId] ?? 1;
+    const body: { content?: string; chatContext?: string; numPages?: number; minCards?: number } = pdfText
+      ? {
+          content: pdfText,
+          chatContext: chatContext ? chatContext.slice(0, 4000) : undefined,
+          numPages,
+          minCards: Math.min(80, numPages * 15),
+        }
       : { chatContext: chatContext.slice(0, 8000) };
 
     generateFlashcardsFromContext(body)
@@ -359,7 +376,7 @@ export default function ChatPage() {
         });
       })
       .finally(() => setFlashcardsLoading(false));
-  }, [currentSessionId, pdfTextBySessionId, messages, addMessage, startSet]);
+  }, [currentSessionId, pdfTextBySessionId, pdfPagesBySessionId, messages, addMessage, startSet]);
 
   const handleAttach = (files: FileList | null) => {
     if (!files?.length) return;
@@ -411,10 +428,11 @@ export default function ChatPage() {
           }
           const data = JSON.parse(raw);
           if (!res.ok) throw new Error(data.error || "Errore lettura PDF");
-          return data.text as string;
+          return { text: data.text as string, numpages: (data.numpages as number) ?? 1 };
         })
-        .then((pdfText) => {
+        .then(({ text: pdfText, numpages }) => {
           setPdfTextBySessionId((prev) => ({ ...prev, [currentSessionId]: pdfText }));
+          setPdfPagesBySessionId((prev) => ({ ...prev, [currentSessionId]: numpages }));
           const contentWithPdf = `PDF allegato: ${file.name}\n\nContenuto del documento:\n${pdfText.slice(0, 6000)}`;
           return messagesToPayload(messages, {
             role: "user",

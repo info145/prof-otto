@@ -16,7 +16,7 @@ export async function POST(request: Request) {
     if (!text) {
       return NextResponse.json({ error: "PDF senza testo estraibile" }, { status: 400 });
     }
-    return NextResponse.json({ text });
+    return NextResponse.json({ text, numpages: result.numpages ?? 1 });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Errore parsing PDF";
     return NextResponse.json({ error: message }, { status: 500 });

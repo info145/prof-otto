@@ -32,6 +32,14 @@ function parseLatex(content: string): Part[] {
       } else if (nextInline >= 0) {
         cut = nextInline;
       }
+      // Prevent infinite loop on malformed/incomplete LaTeX markers.
+      // If we are at a marker start but no valid closing delimiter was found,
+      // treat one character as plain text and continue.
+      if (cut === 0) {
+        parts.push({ type: "text", value: remaining[0] });
+        remaining = remaining.slice(1);
+        continue;
+      }
       const text = remaining.slice(0, cut);
       if (text) parts.push({ type: "text", value: text });
       remaining = remaining.slice(cut);

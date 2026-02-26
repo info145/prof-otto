@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { X } from "lucide-react";
+import { BookOpen, X } from "lucide-react";
 
 export type ChatSession = {
   id: string;
@@ -60,9 +61,17 @@ export function ChatSidebar({
           <X className="h-5 w-5" />
         </button>
       </div>
-      <Button onClick={handleNewChat} className="apple-hover mb-4 mt-2 h-11 w-full shrink-0 rounded-full bg-[#FF6200] text-white lg:mt-0">
+      <Button onClick={handleNewChat} className="apple-hover mb-3 mt-2 h-11 w-full shrink-0 rounded-full bg-[#FF6200] text-white lg:mt-0">
         Nuova chat
       </Button>
+      <Link
+        href="/flashcards"
+        onClick={onMobileClose}
+        className="apple-hover mb-4 flex items-center justify-center gap-2 rounded-full border border-[#EDEDED] px-4 py-2.5 text-sm font-medium text-[#1F1F1F] transition hover:bg-[#FFF0E6] hover:border-[#FF6200]/30"
+      >
+        <BookOpen className="h-4 w-4" />
+        Le mie flashcards
+      </Link>
       <div className="min-h-0 flex-1 space-y-2 overflow-y-auto">
         {sessions.map((s) => (
           <Card
