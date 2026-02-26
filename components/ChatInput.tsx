@@ -11,6 +11,7 @@ type ChatInputProps = {
   onAttach?: (files: FileList | null) => void;
   onOpenCanvas?: () => void;
   onGenerateFlashcards?: () => void;
+  onCancelGenerateFlashcards?: () => void;
   hasChatContent?: boolean;
   flashcardsLoading?: boolean;
   onOpenFlashcards?: () => void;
@@ -29,6 +30,7 @@ export function ChatInput({
   onAttach,
   onOpenCanvas,
   onGenerateFlashcards,
+  onCancelGenerateFlashcards,
   hasChatContent = false,
   flashcardsLoading = false,
   onOpenFlashcards,
@@ -83,17 +85,31 @@ export function ChatInput({
         <Pencil className="h-5 w-5" />
       </button>
       {hasChatContent && onGenerateFlashcards && (
-        <button
-          type="button"
-          onClick={onGenerateFlashcards}
-          disabled={disabled || flashcardsLoading}
-          className="apple-hover flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-[#FF6200]/40 bg-[#FFF0E6] px-3 py-2 text-xs font-medium text-[#FF6200] transition hover:bg-[#FFE4D2] disabled:opacity-70"
-          aria-label="Genera flashcard"
-          title="Genera flashcard dalla chat"
-        >
-          <Layers className="h-4 w-4 shrink-0" />
-          {flashcardsLoading ? "Generazione…" : "Genera flashcard"}
-        </button>
+        <>
+          <button
+            type="button"
+            onClick={onGenerateFlashcards}
+            disabled={disabled || flashcardsLoading}
+            className="apple-hover flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-[#FF6200]/40 bg-[#FFF0E6] px-3 py-2 text-xs font-medium text-[#FF6200] transition hover:bg-[#FFE4D2] disabled:opacity-70"
+            aria-label="Genera flashcard"
+            title="Genera flashcard dalla chat"
+          >
+            <Layers className="h-4 w-4 shrink-0" />
+            {flashcardsLoading ? "Generazione…" : "Genera flashcard"}
+          </button>
+          {flashcardsLoading && onCancelGenerateFlashcards && (
+            <button
+              type="button"
+              onClick={onCancelGenerateFlashcards}
+              className="apple-hover flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-[#DC2626]/30 bg-[#FEE2E2] px-3 py-2 text-xs font-medium text-[#B91C1C] transition hover:bg-[#FECACA]"
+              aria-label="Annulla generazione flashcard"
+              title="Annulla generazione flashcard"
+            >
+              <X className="h-4 w-4 shrink-0" />
+              Annulla
+            </button>
+          )}
+        </>
       )}
       {hasFlashcards && onOpenFlashcards && (
         <button

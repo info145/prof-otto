@@ -4,12 +4,16 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { MessageWithMath } from "./MessageWithMath";
 import { AvatarOtto } from "./AvatarOtto";
+import { GraphCard } from "./GraphCard";
+import type { GraphSpec } from "@/lib/graph-spec";
+import { RenderGuard } from "./RenderGuard";
 
 type ChatBubbleProps = {
   role: "user" | "assistant";
   content: string;
   isImage?: boolean;
   imageUrl?: string;
+  graphSpec?: GraphSpec;
   showAvatar?: boolean;
   isTyping?: boolean;
 };
@@ -19,6 +23,7 @@ export function ChatBubble({
   content,
   isImage,
   imageUrl,
+  graphSpec,
   showAvatar = true,
   isTyping = false,
 }: ChatBubbleProps) {
@@ -50,9 +55,33 @@ export function ChatBubble({
                 <MessageWithMath content={content} />
               </div>
             ) : null}
+            {!isUser && graphSpec ? (
+              <RenderGuard
+                fallback={
+                  <div className="mt-3 rounded-xl border border-[#E5E7EB] bg-white/80 px-3 py-2 text-xs text-[#6B7280]">
+                    Grafico non disponibile per questo messaggio.
+                  </div>
+                }
+              >
+                <GraphCard spec={graphSpec} />
+              </RenderGuard>
+            ) : null}
           </div>
         ) : (
-          <MessageWithMath content={content} />
+          <>
+            <MessageWithMath content={content} />
+            {!isUser && graphSpec ? (
+              <RenderGuard
+                fallback={
+                  <div className="mt-3 rounded-xl border border-[#E5E7EB] bg-white/80 px-3 py-2 text-xs text-[#6B7280]">
+                    Grafico non disponibile per questo messaggio.
+                  </div>
+                }
+              >
+                <GraphCard spec={graphSpec} />
+              </RenderGuard>
+            ) : null}
+          </>
         )}
       </div>
       {isUser && (

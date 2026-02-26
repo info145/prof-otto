@@ -12,12 +12,15 @@ import { CanvasDrawModal } from "@/components/CanvasDrawModal";
 import { FlashcardModal } from "@/components/FlashcardModal";
 import { useProfile } from "@/hooks/useProfile";
 import { useFlashcards } from "@/hooks/useFlashcards";
+import type { GraphSpec } from "@/lib/graph-spec";
+import { sanitizeGraphSpec } from "@/lib/graph-spec";
 
 export type Message = {
   id: string;
   role: "user" | "assistant";
   content: string;
   imageUrl?: string;
+  graphSpec?: GraphSpec;
 };
 
 const STORAGE_KEY = "prof-otto-chat";
@@ -37,6 +40,31 @@ type StoredState = {
   messagesBySessionId: Record<string, Message[]>;
   pdfTextBySessionId?: Record<string, string>;
 };
+
+function normalizeStoredMessages(input: unknown): Message[] {
+  if (!Array.isArray(input)) return [...initialMessages];
+  const normalized = input
+    .map((raw) => {
+      if (!raw || typeof raw !== "object") return null;
+      const item = raw as Record<string, unknown>;
+      const role = item.role === "user" ? "user" : item.role === "assistant" ? "assistant" : null;
+      if (!role) return null;
+      const content = typeof item.content === "string" ? item.content : "";
+      const imageUrl = typeof item.imageUrl === "string" ? item.imageUrl : undefined;
+      const graphSpec = sanitizeGraphSpec(item.graphSpec);
+      if (!content && !imageUrl && !graphSpec) return null;
+      return {
+        id: typeof item.id === "string" && item.id ? item.id : generateId(),
+        role,
+        content: content || (graphSpec ? "Ti ho preparato un grafico utile per questa spiegazione." : ""),
+        imageUrl,
+        graphSpec: graphSpec ?? undefined,
+      } satisfies Message;
+    })
+    .filter((m): m is Message => m !== null);
+
+  return normalized.length > 0 ? normalized : [...initialMessages];
+}
 
 function getDefaultState(): StoredState {
   return {
@@ -63,11 +91,23 @@ function loadState(): StoredState {
       updatedAt: new Date(s.updatedAt),
     }));
     if (sessions.length === 0) return getDefaultState();
-    const messagesBySessionId = parsed.messagesBySessionId || {};
-    if (!messagesBySessionId["default"]?.length) messagesBySessionId["default"] = initialMessages;
+    const parsedMessages = parsed.messagesBySessionId || {};
+    const messagesBySessionId: Record<string, Message[]> = {};
+
+    for (const session of sessions) {
+      messagesBySessionId[session.id] = normalizeStoredMessages(parsedMessages[session.id]);
+    }
+    if (!messagesBySessionId.default) {
+      messagesBySessionId.default = [...initialMessages];
+    }
+
+    const safeCurrentId = messagesBySessionId[parsed.currentSessionId]?.length
+      ? parsed.currentSessionId
+      : sessions[0].id;
+
     return {
       sessions,
-      currentSessionId: parsed.currentSessionId || sessions[0].id,
+      currentSessionId: safeCurrentId || sessions[0].id,
       messagesBySessionId,
       pdfTextBySessionId: parsed.pdfTextBySessionId || {},
     };
@@ -85,7 +125,13 @@ function saveState(state: StoredState) {
       messagesBySessionId: Object.fromEntries(
         Object.entries(state.messagesBySessionId).map(([id, list]) => [
           id,
-          list.map(({ id: mid, role, content, imageUrl }) => ({ id: mid, role, content, imageUrl })),
+          list.map(({ id: mid, role, content, imageUrl, graphSpec }) => ({
+            id: mid,
+            role,
+            content,
+            imageUrl,
+            graphSpec,
+          })),
         ])
       ),
       pdfTextBySessionId: state.pdfTextBySessionId || {},
@@ -141,11 +187,12 @@ async function generateFlashcardsFromContext(body: {
   chatContext?: string;
   numPages?: number;
   minCards?: number;
-}): Promise<GeneratedFlashcard[]> {
+}, signal?: AbortSignal): Promise<GeneratedFlashcard[]> {
   const res = await fetch("/api/flashcards", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
+    signal,
   });
   const contentType = res.headers.get("content-type") || "";
   const text = await res.text();
@@ -201,6 +248,7 @@ export default function ChatPage() {
   const [flashcardModalOpen, setFlashcardModalOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
+  const flashcardsAbortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -209,6 +257,13 @@ export default function ChatPage() {
     window.addEventListener("keydown", handleEscape);
     return () => window.removeEventListener("keydown", handleEscape);
   }, [sidebarOpen]);
+
+  useEffect(() => {
+    return () => {
+      flashcardsAbortRef.current?.abort();
+      flashcardsAbortRef.current = null;
+    };
+  }, []);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const {
     hasCards,
@@ -223,7 +278,10 @@ export default function ChatPage() {
     clearActiveSet,
   } = useFlashcards(user?.id);
 
-  const messages = messagesBySessionId[currentSessionId] ?? initialMessages;
+  const messages =
+    messagesBySessionId[currentSessionId] && messagesBySessionId[currentSessionId].length > 0
+      ? messagesBySessionId[currentSessionId]
+      : initialMessages;
 
   useEffect(() => {
     const state = loadState();
@@ -236,10 +294,13 @@ export default function ChatPage() {
 
   useEffect(() => {
     if (!hydrated) return;
+    const healedMessagesBySessionId = Object.fromEntries(
+      Object.entries(messagesBySessionId).map(([sid, list]) => [sid, normalizeStoredMessages(list)])
+    ) as Record<string, Message[]>;
     saveState({
       sessions,
       currentSessionId,
-      messagesBySessionId,
+      messagesBySessionId: healedMessagesBySessionId,
       pdfTextBySessionId,
     });
   }, [hydrated, sessions, currentSessionId, messagesBySessionId, pdfTextBySessionId]);
@@ -257,6 +318,14 @@ export default function ChatPage() {
         .trim();
       const newMsg: Message = { ...msg, id: generateId() };
       newMsg.content = safeContent;
+      if (newMsg.graphSpec) {
+        const safeGraph = sanitizeGraphSpec(newMsg.graphSpec);
+        if (!safeGraph) {
+          delete newMsg.graphSpec;
+        } else {
+          newMsg.graphSpec = safeGraph;
+        }
+      }
       setMessagesBySessionId((prev) => {
         const list = prev[currentSessionId] ?? initialMessages;
         return { ...prev, [currentSessionId]: [...list, newMsg] };
@@ -296,12 +365,19 @@ export default function ChatPage() {
       .then(async (res) => {
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Errore di rete");
-        return data.message as string;
+        return {
+          message: (data.message as string) || "",
+          graphSpec: sanitizeGraphSpec(data.graphSpec),
+        };
       })
-      .then((message) => {
-        addMessage({ role: "assistant", content: message });
+      .then(({ message, graphSpec }) => {
+        addMessage({ role: "assistant", content: message, graphSpec: graphSpec ?? undefined });
         if (wantsFlashcards) {
-          const chatContext = [...messages, { id: "tmp-u", role: "user", content: userContent }, { id: "tmp-a", role: "assistant", content: message }]
+          const chatContext = [
+            ...messages,
+            { id: "tmp-u", role: "user", content: userContent },
+            { id: "tmp-a", role: "assistant", content: message },
+          ]
             .filter(
               (m) =>
                 m.content &&
@@ -341,6 +417,16 @@ export default function ChatPage() {
       .finally(() => setTyping(false));
   };
 
+  const handleCancelFlashcardsGeneration = useCallback(() => {
+    flashcardsAbortRef.current?.abort();
+    flashcardsAbortRef.current = null;
+    setFlashcardsLoading(false);
+    addMessage({
+      role: "assistant",
+      content: "Generazione flashcard annullata, sarà per la prossima volta 🌊",
+    });
+  }, [addMessage]);
+
   const handleGenerateFlashcards = useCallback(() => {
     const pdfText = pdfTextBySessionId[currentSessionId];
     const chatContext =
@@ -356,6 +442,9 @@ export default function ChatPage() {
 
     if (!pdfText && !chatContext.trim()) return;
 
+    flashcardsAbortRef.current?.abort();
+    const controller = new AbortController();
+    flashcardsAbortRef.current = controller;
     setFlashcardsLoading(true);
     const numPages = pdfPagesBySessionId[currentSessionId] ?? 1;
     const body: { content?: string; chatContext?: string; numPages?: number; minCards?: number } = pdfText
@@ -367,8 +456,9 @@ export default function ChatPage() {
         }
       : { chatContext: chatContext.slice(0, 8000) };
 
-    generateFlashcardsFromContext(body)
+    generateFlashcardsFromContext(body, controller.signal)
       .then((cards) => {
+        if (controller.signal.aborted) return;
         if (cards?.length) {
           const sourceTitle = pdfText ? "Dal PDF" : "Dalla conversazione";
           const started = startSet(sourceTitle, cards);
@@ -383,12 +473,20 @@ export default function ChatPage() {
         }
       })
       .catch((err) => {
+        if (controller.signal.aborted || (err instanceof DOMException && err.name === "AbortError")) {
+          return;
+        }
         addMessage({
           role: "assistant",
           content: "Errore nella generazione delle flashcard. " + (err instanceof Error ? err.message : "Riprova."),
         });
       })
-      .finally(() => setFlashcardsLoading(false));
+      .finally(() => {
+        if (flashcardsAbortRef.current === controller) {
+          flashcardsAbortRef.current = null;
+        }
+        setFlashcardsLoading(false);
+      });
   }, [currentSessionId, pdfTextBySessionId, pdfPagesBySessionId, messages, addMessage, startSet]);
 
   const handleAttach = (files: FileList | null) => {
@@ -436,9 +534,14 @@ export default function ChatPage() {
         .then(async (res) => {
           const data = await res.json();
           if (!res.ok) throw new Error(data.error || "Errore di rete");
-          return data.message as string;
+          return {
+            message: (data.message as string) || "",
+            graphSpec: sanitizeGraphSpec(data.graphSpec),
+          };
         })
-        .then((message) => addMessage({ role: "assistant", content: message }))
+        .then(({ message, graphSpec }) =>
+          addMessage({ role: "assistant", content: message, graphSpec: graphSpec ?? undefined })
+        )
         .catch((err) =>
           addMessage({
             role: "assistant",
@@ -472,9 +575,14 @@ export default function ChatPage() {
       .then(async (res) => {
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Errore di rete");
-        return data.message as string;
+        return {
+          message: (data.message as string) || "",
+          graphSpec: sanitizeGraphSpec(data.graphSpec),
+        };
       })
-      .then((message) => addMessage({ role: "assistant", content: message }))
+      .then(({ message, graphSpec }) =>
+        addMessage({ role: "assistant", content: message, graphSpec: graphSpec ?? undefined })
+      )
       .catch((err) =>
         addMessage({
           role: "assistant",
@@ -583,6 +691,7 @@ export default function ChatPage() {
                 content={msg.content}
                 isImage={!!msg.imageUrl}
                 imageUrl={msg.imageUrl}
+                graphSpec={msg.graphSpec}
                 showAvatar={msg.role === "assistant"}
               />
             ))}
@@ -606,6 +715,7 @@ export default function ChatPage() {
               onClearAttachment={() => setPendingImageAttachment(null)}
               onOpenCanvas={() => setCanvasOpen(true)}
               onGenerateFlashcards={handleGenerateFlashcards}
+              onCancelGenerateFlashcards={handleCancelFlashcardsGeneration}
               hasChatContent={messages.length > 1 || !!pdfTextBySessionId[currentSessionId]}
               flashcardsLoading={flashcardsLoading}
               onOpenFlashcards={() => setFlashcardModalOpen(true)}

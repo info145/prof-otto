@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import { createClient } from "@/lib/supabase/server";
+import { sanitizeGraphSpec } from "@/lib/graph-spec";
 
 const systemPrompt = `IDENTITÀ
 Sei "Prof. Otto", mentore didattico creato da Mentor.
@@ -112,6 +113,122 @@ FORMATO RISPOSTA
 4-8 frasi massimo. Output pulito, niente markdown superfluo.
 Ricorda: non dare mai la soluzione completa; guida lo studente passo dopo passo.`;
 
+const graphSystemPrompt = `
+MODALITÀ GRAFICI (JSON FACOLTATIVO)
+Quando utile per spiegare matematica/fisica, puoi proporre un grafico.
+Se inserisci un grafico, aggiungi in coda alla risposta un blocco JSON valido tra marker:
+<GRAPH_JSON>
+{ ... }
+</GRAPH_JSON>
+
+Schema JSON consentito:
+{
+  "title": "string opzionale",
+  "subtitle": "string opzionale",
+  "xLabel": "string opzionale",
+  "yLabel": "string opzionale",
+  "xMin": number,
+  "xMax": number,
+  "yMin": number,
+  "yMax": number,
+  "series": [
+    {
+      "label": "string opzionale",
+      "color": "#RRGGBB opzionale",
+      "points": [{ "x": number, "y": number }, ...]
+    }
+  ]
+}
+
+Regole:
+- Genera il JSON SOLO se davvero utile.
+- Ogni serie deve avere almeno 2 punti.
+- Massimo 4 serie.
+- Non inserire testo extra dentro i marker, solo JSON puro.
+`;
+
+function splitGraphFromMessage(raw: string): { message: string; graphSpec: unknown | null } {
+  const start = "<GRAPH_JSON>";
+  const end = "</GRAPH_JSON>";
+  const s = raw.indexOf(start);
+  const e = raw.indexOf(end);
+  if (s < 0 || e < 0 || e <= s) {
+    return { message: raw.trim(), graphSpec: null };
+  }
+  const before = raw.slice(0, s).trim();
+  const jsonText = raw.slice(s + start.length, e).trim();
+  try {
+    const parsed = JSON.parse(jsonText);
+    return { message: before, graphSpec: parsed };
+  } catch {
+    return { message: before || raw.trim(), graphSpec: null };
+  }
+}
+
+function shouldForceGraph(userText: string): boolean {
+  return /(grafico|disegna|plot|mostra.*grafico)/i.test(userText);
+}
+
+function buildGraphFromExpression(userText: string) {
+  const exprMatch = userText.match(/(?:y|f\s*\(\s*x\s*\))\s*=\s*([^\n\r]+)/i);
+  if (!exprMatch) return null;
+  let expr = exprMatch[1].trim();
+  if (!expr || expr.length > 120) return null;
+  expr = expr.replace(/,/g, ".").replace(/\^/g, "**");
+  if (!/^[0-9xX+\-*/().\s*]+$/.test(expr)) return null;
+  if (/(?:\*\*\*)|(?:\/\*)|(?:\*\/)/.test(expr)) return null;
+
+  let fn: ((x: number) => number) | null = null;
+  try {
+    fn = new Function("x", `"use strict"; return (${expr});`) as (x: number) => number;
+  } catch {
+    return null;
+  }
+
+  const points: { x: number; y: number }[] = [];
+  for (let x = -10; x <= 10; x += 0.25) {
+    const xx = Number(x.toFixed(2));
+    let y: number;
+    try {
+      y = fn(xx);
+    } catch {
+      continue;
+    }
+    if (!Number.isFinite(y)) continue;
+    points.push({ x: xx, y: Number(y.toFixed(4)) });
+  }
+  if (points.length < 2) return null;
+
+  let yMin = Math.min(...points.map((p) => p.y));
+  let yMax = Math.max(...points.map((p) => p.y));
+  if (yMin === yMax) {
+    yMin -= 1;
+    yMax += 1;
+  } else {
+    const pad = (yMax - yMin) * 0.1;
+    yMin -= pad;
+    yMax += pad;
+  }
+
+  return sanitizeGraphSpec({
+    title: `Grafico di y = ${exprMatch[1].trim()}`,
+    subtitle: "Generato automaticamente",
+    xLabel: "x",
+    yLabel: "y",
+    xMin: -10,
+    xMax: 10,
+    yMin,
+    yMax,
+    series: [
+      {
+        label: "y(x)",
+        color: "#FF6200",
+        points,
+      },
+    ],
+  });
+}
+
 export async function POST(request: Request) {
   const apiKey = process.env.OPENAI_API_KEY?.trim();
   const invalidPlaceholder =
@@ -181,7 +298,7 @@ export async function POST(request: Request) {
   }
 
   const formatted = [
-    { role: "system" as const, content: systemPrompt + profileLine },
+    { role: "system" as const, content: systemPrompt + graphSystemPrompt + profileLine },
     ...messages.map((m) => ({
       role: (m.role === "assistant" ? "assistant" : "user") as "user" | "assistant",
       content: buildContent(m),
@@ -189,6 +306,7 @@ export async function POST(request: Request) {
   ];
 
   const model = process.env.OPENAI_MODEL || "gpt-4o-mini";
+  const lastUserText = [...messages].reverse().find((m) => m.role === "user")?.content || "";
 
   try {
     const completion = await openai.chat.completions.create({
@@ -198,7 +316,12 @@ export async function POST(request: Request) {
     });
 
     const content = completion.choices[0]?.message?.content?.trim() || "Non ho potuto generare una risposta. Riprova.";
-    return NextResponse.json({ message: content });
+    const { message, graphSpec } = splitGraphFromMessage(content);
+    const safeGraph = sanitizeGraphSpec(graphSpec);
+    const fallbackGraph = !safeGraph && shouldForceGraph(lastUserText) ? buildGraphFromExpression(lastUserText) : null;
+    const finalGraph = safeGraph ?? fallbackGraph ?? undefined;
+    const safeMessage = (message || "").trim() || (finalGraph ? "Ecco il grafico per aiutarti nella spiegazione." : "");
+    return NextResponse.json({ message: safeMessage, graphSpec: finalGraph });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Errore OpenAI";
     return NextResponse.json({ error: message }, { status: 500 });

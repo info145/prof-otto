@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { AvatarOtto } from "@/components/AvatarOtto";
 import { Menu } from "lucide-react";
 
 type ChatHeaderProps = {
@@ -37,9 +36,9 @@ export function ChatHeader({ onClearChat, hasMessages = false, onOpenSidebar }: 
         </div>
         <div className="hidden h-8 w-px bg-[#EDEDED] md:block" />
         <div className="hidden items-center gap-2 md:flex">
-          <AvatarOtto />
           <p className="text-sm font-semibold text-[#1F1F1F]">Prof Otto</p>
           <Badge className="bg-[#FF6200] text-white">BETA</Badge>
+          <span className="text-xs font-semibold text-[#6B7280]">1.0</span>
         </div>
       </div>
       {onClearChat && (
