@@ -12,25 +12,25 @@ type ChatHeaderProps = {
 
 export function ChatHeader({ onClearChat, hasMessages = false, onOpenSidebar }: ChatHeaderProps) {
   return (
-    <div className="flex items-center justify-between border-b border-[#EDEDED] bg-white/90 px-4 py-4 backdrop-blur-sm md:px-6">
-      <div className="flex min-w-0 items-center gap-4">
+    <div className="flex items-center justify-between border-b border-[#EDEDED] bg-white/90 px-3 py-2.5 backdrop-blur-sm md:px-6 md:py-4">
+      <div className="flex min-w-0 items-center gap-2 md:gap-4">
         {onOpenSidebar && (
           <button
             type="button"
             onClick={onOpenSidebar}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[#1F1F1F] transition hover:bg-[#FFF0E6] lg:hidden"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[#1F1F1F] transition hover:bg-[#FFF0E6] lg:hidden"
             aria-label="Apri chat"
           >
-            <Menu className="h-6 w-6" />
+            <Menu className="h-5 w-5" />
           </button>
         )}
         <div className="flex flex-col gap-0.5">
           <img
             src="https://mentor-ripetizioni.com/wp-content/uploads/2025/08/mentor.webp"
             alt="Mentor"
-            className="h-auto w-[170px] max-w-[45vw] object-contain"
+            className="h-auto w-[130px] max-w-[42vw] object-contain md:w-[170px] md:max-w-[45vw]"
           />
-          <span className="text-xs font-medium text-mentor-orange">
+          <span className="text-[10px] font-medium text-mentor-orange md:text-xs">
             la guida che ogni studente merita
           </span>
         </div>
@@ -47,7 +47,7 @@ export function ChatHeader({ onClearChat, hasMessages = false, onOpenSidebar }: 
           size="sm"
           onClick={onClearChat}
           disabled={!hasMessages}
-          className="rounded-full border-[#EDEDED] hover:border-[#FF6200]/35 hover:bg-[#FFF4EC]"
+          className="h-8 rounded-full border-[#EDEDED] px-3 text-xs hover:border-[#FF6200]/35 hover:bg-[#FFF4EC] md:h-9 md:px-4 md:text-sm"
         >
           Pulisci
         </Button>

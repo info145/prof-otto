@@ -683,7 +683,7 @@ export default function ChatPage() {
           hasMessages={messages.length > 1}
           onOpenSidebar={() => setSidebarOpen(true)}
         />
-        <div className="min-h-0 overflow-y-auto overflow-x-hidden bg-[#FAFAFA]/60 px-4 py-6 md:px-6 md:py-10">
+        <div className="min-h-0 overflow-y-auto overflow-x-hidden bg-[#FAFAFA]/60 px-2.5 py-4 md:px-6 md:py-10">
           <div className="mx-auto flex max-w-3xl flex-col gap-7">
             {messages.map((msg) => (
               <ChatBubble
@@ -700,7 +700,7 @@ export default function ChatPage() {
             <div ref={messagesEndRef} />
           </div>
         </div>
-        <div className="border-t border-[#EDEDED] bg-white/85 px-3 py-3 backdrop-blur md:px-6 md:py-4">
+        <div className="border-t border-[#EDEDED] bg-white/90 px-2.5 py-2.5 backdrop-blur md:bg-white/85 md:px-6 md:py-4">
           <motion.div
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}

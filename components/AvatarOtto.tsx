@@ -19,7 +19,7 @@ export function AvatarOtto({ isTyping = false, className }: AvatarOttoProps) {
       transition={isTyping ? { duration: 0.9, repeat: Infinity, ease: "easeInOut" } : undefined}
       className={cn("rounded-full shadow-sm", className)}
     >
-      <Avatar className="h-16 w-16 border-2 border-[#FFD9C2] bg-white">
+      <Avatar className="h-10 w-10 border-2 border-[#FFD9C2] bg-white md:h-16 md:w-16">
         <AvatarImage src={OTTO_AVATAR_URL} alt="Prof Otto" className="object-contain object-center" />
         <AvatarFallback className="text-base">🐙</AvatarFallback>
       </Avatar>
