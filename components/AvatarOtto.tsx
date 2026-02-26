@@ -20,7 +20,7 @@ export function AvatarOtto({ isTyping = false, className }: AvatarOttoProps) {
       className={cn("rounded-full shadow-sm", className)}
     >
       <Avatar className="h-16 w-16 border-2 border-[#FFD9C2] bg-white">
-        <AvatarImage src={OTTO_AVATAR_URL} alt="Prof Otto" className="object-contain" />
+        <AvatarImage src={OTTO_AVATAR_URL} alt="Prof Otto" className="object-contain object-center" />
         <AvatarFallback className="text-base">🐙</AvatarFallback>
       </Avatar>
     </motion.div>
