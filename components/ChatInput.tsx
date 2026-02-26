@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { Paperclip, Pencil, Layers, Send } from "lucide-react";
+import { Paperclip, Pencil, Layers, Send, X } from "lucide-react";
 import { motion } from "framer-motion";
 
 type ChatInputProps = {
@@ -18,6 +18,8 @@ type ChatInputProps = {
   flashcardStudyLabel?: string;
   disabled?: boolean;
   placeholder?: string;
+  attachmentLabel?: string;
+  onClearAttachment?: () => void;
 };
 
 export function ChatInput({
@@ -34,12 +36,14 @@ export function ChatInput({
   flashcardStudyLabel = "Studia flashcard",
   disabled = false,
   placeholder = "Scrivi un messaggio o carica un file...",
+  attachmentLabel,
+  onClearAttachment,
 }: ChatInputProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!value.trim()) return;
+    if (!value.trim() && !attachmentLabel) return;
     onSend(e);
   };
 
@@ -57,7 +61,10 @@ export function ChatInput({
         accept="image/*,.pdf"
         multiple
         className="hidden"
-        onChange={(e) => onAttach?.(e.target.files)}
+        onChange={(e) => {
+          onAttach?.(e.target.files);
+          e.currentTarget.value = "";
+        }}
       />
       <button
         type="button"
@@ -100,13 +107,28 @@ export function ChatInput({
           {flashcardStudyLabel}
         </button>
       )}
+      {attachmentLabel && (
+        <div className="flex h-9 max-w-[180px] shrink-0 items-center gap-1.5 rounded-full border border-[#E5E7EB] bg-[#FAFAFA] px-2.5 text-xs text-[#374151]">
+          <span className="truncate">{attachmentLabel}</span>
+          {onClearAttachment && (
+            <button
+              type="button"
+              onClick={onClearAttachment}
+              className="rounded-full p-0.5 text-[#6B7280] transition hover:bg-[#E5E7EB] hover:text-[#111827]"
+              aria-label="Rimuovi allegato"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
+      )}
       <textarea
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={(e) => {
           if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
-            if (value.trim()) handleSubmit(e as unknown as React.FormEvent);
+            if (value.trim() || attachmentLabel) handleSubmit(e as unknown as React.FormEvent);
           }
         }}
         rows={1}
@@ -116,7 +138,7 @@ export function ChatInput({
       />
       <button
         type="submit"
-        disabled={disabled || !value.trim()}
+        disabled={disabled || (!value.trim() && !attachmentLabel)}
         className="apple-hover flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#FF6200] text-white shadow-sm transition hover:bg-[#E85A00] disabled:opacity-50 disabled:hover:bg-[#FF6200]"
         aria-label="Invia"
       >

@@ -13,7 +13,26 @@ import {
 import { FlashcardModal } from "@/components/FlashcardModal";
 import { MessageWithMath } from "@/components/MessageWithMath";
 
-const DEFAULT_SUBJECTS = ["Matematica", "Fisica", "Chimica", "Italiano", "Storia", "Inglese", "Generale"];
+const DEFAULT_SUBJECTS = [
+  "Italiano",
+  "Latino",
+  "Greco",
+  "Storia",
+  "Filosofia",
+  "Inglese",
+  "Matematica",
+  "Fisica",
+  "Chimica",
+  "Biologia",
+  "Scienze della Terra",
+  "Storia dell'arte",
+  "Disegno tecnico",
+  "Informatica",
+  "Educazione civica",
+  "Scienze motorie",
+  "Religione",
+  "Generale",
+];
 
 export default function FlashcardsPage() {
   const { user } = useProfile();

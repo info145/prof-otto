@@ -191,6 +191,10 @@ export default function ChatPage() {
   );
   const [pdfPagesBySessionId, setPdfPagesBySessionId] = useState<Record<string, number>>({});
   const [input, setInput] = useState("");
+  const [pendingImageAttachment, setPendingImageAttachment] = useState<{
+    dataUrl: string;
+    name: string;
+  } | null>(null);
   const [typing, setTyping] = useState(false);
   const [flashcardsLoading, setFlashcardsLoading] = useState(false);
   const [canvasOpen, setCanvasOpen] = useState(false);
@@ -265,14 +269,17 @@ export default function ChatPage() {
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
     const text = input.trim();
-    if (!text) return;
+    if (!text && !pendingImageAttachment) return;
+    const attachedImageUrl = pendingImageAttachment?.dataUrl;
+    const userContent = text || "Immagine allegata";
     setInput("");
-    addMessage({ role: "user", content: text });
+    setPendingImageAttachment(null);
+    addMessage({ role: "user", content: userContent, imageUrl: attachedImageUrl });
     setTyping(true);
 
-    const wantsFlashcards = shouldAutoGenerateFlashcards(text);
+    const wantsFlashcards = text ? shouldAutoGenerateFlashcards(text) : false;
 
-    messagesToPayload(messages, { role: "user", content: text })
+    messagesToPayload(messages, { role: "user", content: userContent, imageUrl: attachedImageUrl })
       .then((payload) =>
         fetch("/api/chat", {
           method: "POST",
@@ -288,7 +295,7 @@ export default function ChatPage() {
       .then((message) => {
         addMessage({ role: "assistant", content: message });
         if (wantsFlashcards) {
-          const chatContext = [...messages, { id: "tmp-u", role: "user", content: text }, { id: "tmp-a", role: "assistant", content: message }]
+          const chatContext = [...messages, { id: "tmp-u", role: "user", content: userContent }, { id: "tmp-a", role: "assistant", content: message }]
             .filter(
               (m) =>
                 m.content &&
@@ -385,33 +392,7 @@ export default function ChatPage() {
       const reader = new FileReader();
       reader.onload = () => {
         const dataUrl = reader.result as string;
-        addMessage({
-          role: "user",
-          content: "Immagine allegata",
-          imageUrl: dataUrl,
-        });
-        setTyping(true);
-        messagesToPayload(messages, { role: "user", content: "Immagine allegata", imageUrl: dataUrl })
-          .then((payload) =>
-            fetch("/api/chat", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ messages: payload }),
-            })
-          )
-          .then(async (res) => {
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || "Errore di rete");
-            return data.message as string;
-          })
-          .then((message) => addMessage({ role: "assistant", content: message }))
-          .catch((err) =>
-            addMessage({
-              role: "assistant",
-              content: "Errore nell'analisi dell'immagine. " + (err instanceof Error ? err.message : ""),
-            })
-          )
-          .finally(() => setTyping(false));
+        setPendingImageAttachment({ dataUrl, name: file.name });
       };
       reader.readAsDataURL(file);
     } else if (file.name.toLowerCase().endsWith(".pdf")) {
@@ -615,6 +596,8 @@ export default function ChatPage() {
               onChange={setInput}
               onSend={handleSend}
               onAttach={handleAttach}
+              attachmentLabel={pendingImageAttachment ? `Foto: ${pendingImageAttachment.name}` : undefined}
+              onClearAttachment={() => setPendingImageAttachment(null)}
               onOpenCanvas={() => setCanvasOpen(true)}
               onGenerateFlashcards={handleGenerateFlashcards}
               hasChatContent={messages.length > 1 || !!pdfTextBySessionId[currentSessionId]}
