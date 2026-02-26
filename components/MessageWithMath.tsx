@@ -15,7 +15,7 @@ function parseLatex(content: string): Part[] {
 
   while (remaining.length > 0) {
     const displayMatch = remaining.match(/^\$\$([\s\S]*?)\$\$/);
-    const inlineMatch = remaining.match(/^\\\((.*?)\\\)/s);
+    const inlineMatch = remaining.match(/^\\\(([\s\S]*?)\\\)/);
 
     if (displayMatch) {
       parts.push({ type: "display", value: displayMatch[1].trim() });

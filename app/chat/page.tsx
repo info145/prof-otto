@@ -53,13 +53,14 @@ function normalizeStoredMessages(input: unknown): Message[] {
       const imageUrl = typeof item.imageUrl === "string" ? item.imageUrl : undefined;
       const graphSpec = sanitizeGraphSpec(item.graphSpec);
       if (!content && !imageUrl && !graphSpec) return null;
-      return {
+      const message: Message = {
         id: typeof item.id === "string" && item.id ? item.id : generateId(),
         role,
         content: content || (graphSpec ? "Ti ho preparato un grafico utile per questa spiegazione." : ""),
         imageUrl,
         graphSpec: graphSpec ?? undefined,
-      } satisfies Message;
+      };
+      return message;
     })
     .filter((m): m is Message => m !== null);
 

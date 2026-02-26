@@ -38,30 +38,31 @@ export function sanitizeGraphSpec(input: unknown): GraphSpec | null {
   if (xMax <= xMin || yMax <= yMin) return null;
 
   const rawSeries = Array.isArray(raw.series) ? raw.series : [];
-  const series: GraphSeries[] = rawSeries
-    .map((entry) => {
-      if (!entry || typeof entry !== "object") return null;
-      const s = entry as Record<string, unknown>;
-      const points = (Array.isArray(s.points) ? s.points : [])
-        .map((p) => {
-          if (!p || typeof p !== "object") return null;
-          const r = p as Record<string, unknown>;
-          const x = asFiniteNumber(r.x);
-          const y = asFiniteNumber(r.y);
-          if (x === null || y === null) return null;
-          return { x, y };
-        })
-        .filter((p): p is GraphPoint => p !== null)
-        .slice(0, 400);
-      if (points.length < 2) return null;
-      return {
-        label: typeof s.label === "string" ? s.label.slice(0, 60) : undefined,
-        color: typeof s.color === "string" ? s.color.slice(0, 20) : undefined,
-        points,
-      };
-    })
-    .filter((s): s is GraphSeries => s !== null)
-    .slice(0, 4);
+  const series: GraphSeries[] = [];
+  for (const entry of rawSeries) {
+    if (!entry || typeof entry !== "object") continue;
+    const s = entry as Record<string, unknown>;
+    const points = (Array.isArray(s.points) ? s.points : [])
+      .map((p) => {
+        if (!p || typeof p !== "object") return null;
+        const r = p as Record<string, unknown>;
+        const x = asFiniteNumber(r.x);
+        const y = asFiniteNumber(r.y);
+        if (x === null || y === null) return null;
+        return { x, y };
+      })
+      .filter((p): p is GraphPoint => p !== null)
+      .slice(0, 400);
+    if (points.length < 2) continue;
+
+    const item: GraphSeries = {
+      points,
+      ...(typeof s.label === "string" ? { label: s.label.slice(0, 60) } : {}),
+      ...(typeof s.color === "string" ? { color: s.color.slice(0, 20) } : {}),
+    };
+    series.push(item);
+    if (series.length >= 4) break;
+  }
 
   if (series.length === 0) return null;
 
