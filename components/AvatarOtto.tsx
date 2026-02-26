@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
 const OTTO_AVATAR_URL =
-  "https://mentor-ripetizioni.com/wp-content/uploads/2025/09/OTTO-MASCOTTE-02-1.png";
+  "https://mentor-ripetizioni.com/wp-content/uploads/2025/08/OTTO-MASCOTTE-04-768x687.png";
 
 type AvatarOttoProps = {
   isTyping?: boolean;
@@ -19,8 +19,8 @@ export function AvatarOtto({ isTyping = false, className }: AvatarOttoProps) {
       transition={isTyping ? { duration: 0.9, repeat: Infinity, ease: "easeInOut" } : undefined}
       className={cn("rounded-full shadow-sm", className)}
     >
-      <Avatar className="h-10 w-10 border border-[#FFD9C2] bg-white">
-        <AvatarImage src={OTTO_AVATAR_URL} alt="Prof Otto" />
+      <Avatar className="h-16 w-16 border-2 border-[#FFD9C2] bg-white">
+        <AvatarImage src={OTTO_AVATAR_URL} alt="Prof Otto" className="object-contain" />
         <AvatarFallback className="text-base">🐙</AvatarFallback>
       </Avatar>
     </motion.div>

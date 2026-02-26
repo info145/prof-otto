@@ -184,7 +184,16 @@ export default function ChatPage() {
   const [flashcardsLoading, setFlashcardsLoading] = useState(false);
   const [canvasOpen, setCanvasOpen] = useState(false);
   const [flashcardModalOpen, setFlashcardModalOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && sidebarOpen) setSidebarOpen(false);
+    };
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [sidebarOpen]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const {
     hasCards,
@@ -551,9 +560,15 @@ export default function ChatPage() {
         onNewChat={handleNewChat}
         onRenameSession={handleRenameSession}
         onDeleteSession={handleDeleteSession}
+        mobileOpen={sidebarOpen}
+        onMobileClose={() => setSidebarOpen(false)}
       />
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-white/70">
-        <ChatHeader onClearChat={handleClearChat} hasMessages={messages.length > 1} />
+        <ChatHeader
+          onClearChat={handleClearChat}
+          hasMessages={messages.length > 1}
+          onOpenSidebar={() => setSidebarOpen(true)}
+        />
         <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden bg-[#FAFAFA]/60 px-6 py-10">
           <div className="mx-auto flex max-w-3xl flex-col gap-7">
             {messages.map((msg) => (

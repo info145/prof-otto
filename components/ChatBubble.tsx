@@ -56,7 +56,7 @@ export function ChatBubble({
         )}
       </div>
       {isUser && (
-        <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#E5E5E5] text-xs font-semibold text-[#1A1A1A]">
+        <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-[#E5E5E5] text-xs font-semibold text-[#1A1A1A]">
           Tu
         </div>
       )}

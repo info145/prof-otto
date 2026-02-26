@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { X } from "lucide-react";
 
 export type ChatSession = {
   id: string;
@@ -19,6 +20,8 @@ type ChatSidebarProps = {
   onNewChat: () => void;
   onRenameSession?: (id: string, title: string) => void;
   onDeleteSession?: (id: string) => void;
+  mobileOpen?: boolean;
+  onMobileClose?: () => void;
 };
 
 export function ChatSidebar({
@@ -28,16 +31,39 @@ export function ChatSidebar({
   onNewChat,
   onRenameSession,
   onDeleteSession,
+  mobileOpen = false,
+  onMobileClose,
 }: ChatSidebarProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
 
-  return (
-    <aside className="hidden w-[280px] shrink-0 border-r border-[#EDEDED] bg-white/92 p-4 backdrop-blur-md lg:block">
-      <Button onClick={onNewChat} className="apple-hover mb-4 h-11 w-full rounded-full bg-[#FF6200] text-white">
+  const handleSelect = (id: string) => {
+    onSelect(id);
+    onMobileClose?.();
+  };
+
+  const handleNewChat = () => {
+    onNewChat();
+    onMobileClose?.();
+  };
+
+  const sidebarContent = (
+    <>
+      <div className="flex items-center justify-between gap-2 lg:hidden">
+        <span className="text-sm font-semibold text-[#1F1F1F]">Chat</span>
+        <button
+          type="button"
+          onClick={onMobileClose}
+          className="flex h-9 w-9 items-center justify-center rounded-full text-[#8E8E93] transition hover:bg-[#FFF0E6] hover:text-[#1F1F1F]"
+          aria-label="Chiudi"
+        >
+          <X className="h-5 w-5" />
+        </button>
+      </div>
+      <Button onClick={handleNewChat} className="apple-hover mb-4 mt-2 h-11 w-full shrink-0 rounded-full bg-[#FF6200] text-white lg:mt-0">
         Nuova chat
       </Button>
-      <div className="space-y-2">
+      <div className="min-h-0 flex-1 space-y-2 overflow-y-auto">
         {sessions.map((s) => (
           <Card
             key={s.id}
@@ -74,7 +100,7 @@ export function ChatSidebar({
                 <button
                   type="button"
                   className="flex-1 truncate text-left"
-                  onClick={() => onSelect(s.id)}
+                  onClick={() => handleSelect(s.id)}
                   onDoubleClick={() => {
                     setEditingId(s.id);
                     setDraft(s.title);
@@ -101,6 +127,39 @@ export function ChatSidebar({
           </Card>
         ))}
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* Desktop: always visible sidebar */}
+      <aside
+        className={cn(
+          "flex h-full w-[280px] shrink-0 flex-col border-r border-[#EDEDED] bg-white/92 p-4 backdrop-blur-md",
+          "hidden lg:flex"
+        )}
+      >
+        {sidebarContent}
+      </aside>
+
+      {/* Mobile: overlay when open */}
+      {mobileOpen && (
+        <>
+          <div
+            className="fixed inset-0 z-40 bg-black/25 lg:hidden"
+            onClick={onMobileClose}
+            aria-hidden
+          />
+          <aside
+            className={cn(
+              "fixed inset-y-0 left-0 z-50 flex w-[280px] max-w-[85vw] flex-col border-r border-[#EDEDED] bg-white/98 p-4 shadow-xl backdrop-blur-md",
+              "lg:hidden"
+            )}
+          >
+            {sidebarContent}
+          </aside>
+        </>
+      )}
+    </>
   );
 }

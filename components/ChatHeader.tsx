@@ -3,16 +3,28 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AvatarOtto } from "@/components/AvatarOtto";
+import { Menu } from "lucide-react";
 
 type ChatHeaderProps = {
   onClearChat?: () => void;
   hasMessages?: boolean;
+  onOpenSidebar?: () => void;
 };
 
-export function ChatHeader({ onClearChat, hasMessages = false }: ChatHeaderProps) {
+export function ChatHeader({ onClearChat, hasMessages = false, onOpenSidebar }: ChatHeaderProps) {
   return (
-    <div className="flex items-center justify-between border-b border-[#EDEDED] bg-white/90 px-6 py-4 backdrop-blur-sm">
+    <div className="flex items-center justify-between border-b border-[#EDEDED] bg-white/90 px-4 py-4 backdrop-blur-sm md:px-6">
       <div className="flex min-w-0 items-center gap-4">
+        {onOpenSidebar && (
+          <button
+            type="button"
+            onClick={onOpenSidebar}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[#1F1F1F] transition hover:bg-[#FFF0E6] lg:hidden"
+            aria-label="Apri chat"
+          >
+            <Menu className="h-6 w-6" />
+          </button>
+        )}
         <div className="flex flex-col gap-0.5">
           <img
             src="https://mentor-ripetizioni.com/wp-content/uploads/2025/08/mentor.webp"
