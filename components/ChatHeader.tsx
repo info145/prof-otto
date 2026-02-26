@@ -38,7 +38,7 @@ export function ChatHeader({ onClearChat, hasMessages = false, onOpenSidebar }: 
         <div className="hidden items-center gap-2 md:flex">
           <p className="text-sm font-semibold text-[#1F1F1F]">Prof Otto</p>
           <Badge className="bg-[#FF6200] text-white">BETA</Badge>
-          <span className="text-xs font-semibold text-[#6B7280]">1.0</span>
+          <span className="text-xs font-semibold text-[#6B7280]">1.1</span>
         </div>
       </div>
       {onClearChat && (
