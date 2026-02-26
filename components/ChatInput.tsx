@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { Paperclip, Pencil, Layers, Send, Smile } from "lucide-react";
+import { Paperclip, Pencil, Layers, Send } from "lucide-react";
 import { motion } from "framer-motion";
 
 type ChatInputProps = {
@@ -74,14 +74,6 @@ export function ChatInput({
         aria-label="Lavagna"
       >
         <Pencil className="h-5 w-5" />
-      </button>
-      <button
-        type="button"
-        className="apple-hover flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-[#8C8C92] transition hover:bg-[#FFF0E6] hover:text-[#FF6200]"
-        aria-label="Emoji"
-        title="Emoji"
-      >
-        <Smile className="h-5 w-5" />
       </button>
       {hasChatContent && onGenerateFlashcards && (
         <button

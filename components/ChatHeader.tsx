@@ -13,11 +13,16 @@ export function ChatHeader({ onClearChat, hasMessages = false }: ChatHeaderProps
   return (
     <div className="flex items-center justify-between border-b border-[#EDEDED] bg-white/90 px-6 py-4 backdrop-blur-sm">
       <div className="flex min-w-0 items-center gap-4">
-        <img
-          src="https://mentor-ripetizioni.com/wp-content/uploads/2025/08/mentor.webp"
-          alt="Mentor"
-          className="h-auto w-[170px] max-w-[45vw] object-contain"
-        />
+        <div className="flex flex-col gap-0.5">
+          <img
+            src="https://mentor-ripetizioni.com/wp-content/uploads/2025/08/mentor.webp"
+            alt="Mentor"
+            className="h-auto w-[170px] max-w-[45vw] object-contain"
+          />
+          <span className="text-xs font-medium text-mentor-orange">
+            la guida che ogni studente merita
+          </span>
+        </div>
         <div className="hidden h-8 w-px bg-[#EDEDED] md:block" />
         <div className="hidden items-center gap-2 md:flex">
           <AvatarOtto />

@@ -15,14 +15,27 @@ export function CanvasDrawModal({ open, onClose, onSendImage }: CanvasDrawModalP
 
   if (!open) return null;
 
+  const getCanvasCoords = (e: { clientX: number; clientY: number }) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return null;
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    return {
+      x: (e.clientX - rect.left) * scaleX,
+      y: (e.clientY - rect.top) * scaleY,
+    };
+  };
+
   const start = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    const rect = canvas.getBoundingClientRect();
+    const coords = getCanvasCoords(e);
+    if (!coords) return;
     ctx.beginPath();
-    ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+    ctx.moveTo(coords.x, coords.y);
     ctx.lineWidth = 3;
     ctx.strokeStyle = "#1A1A1A";
     setDrawing(true);
@@ -34,8 +47,9 @@ export function CanvasDrawModal({ open, onClose, onSendImage }: CanvasDrawModalP
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    const rect = canvas.getBoundingClientRect();
-    ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+    const coords = getCanvasCoords(e);
+    if (!coords) return;
+    ctx.lineTo(coords.x, coords.y);
     ctx.stroke();
   };
 
@@ -65,10 +79,12 @@ export function CanvasDrawModal({ open, onClose, onSendImage }: CanvasDrawModalP
           ref={canvasRef}
           width={1000}
           height={600}
-          onMouseDown={start}
-          onMouseMove={move}
-          onMouseUp={stop}
-          onMouseLeave={stop}
+          onPointerDown={start}
+          onPointerMove={move}
+          onPointerUp={stop}
+          onPointerLeave={stop}
+          onPointerCancel={stop}
+          style={{ touchAction: "none" }}
           className="h-[60vh] w-full rounded-xl border border-border bg-white"
         />
         <div className="mt-3 flex justify-end gap-2">
