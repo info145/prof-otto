@@ -34,6 +34,10 @@ export function ChatHeader({ onClearChat, hasMessages = false, onOpenSidebar }: 
             la guida che ogni studente merita
           </span>
         </div>
+        <div className="flex items-center gap-1 md:hidden">
+          <Badge className="h-6 bg-[#FF6200] px-2 text-[10px] text-white">BETA</Badge>
+          <span className="text-[10px] font-semibold text-[#6B7280]">1.1</span>
+        </div>
         <div className="hidden h-8 w-px bg-[#EDEDED] md:block" />
         <div className="hidden items-center gap-2 md:flex">
           <p className="text-sm font-semibold text-[#1F1F1F]">Prof Otto</p>
