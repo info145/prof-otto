@@ -50,22 +50,53 @@ function parseLatex(content: string): Part[] {
 }
 
 function renderPart(part: Part, index: number): React.ReactNode {
-  if (part.type === "text") return <span key={index}>{part.value}</span>;
-  return part.type === "display" ? (
-    <span key={index} className="my-2 block overflow-x-auto">
-      <BlockMath math={part.value} errorColor="#DC2626" />
-    </span>
-  ) : (
+  if (part.type === "text") {
+    const paragraphs = part.value.split(/\n{2,}/);
+    if (paragraphs.length === 1) return <span key={index}>{part.value}</span>;
+    return (
+      <span key={index} className="block">
+        {paragraphs.map((p, i) => (
+          <span key={i} className={i === paragraphs.length - 1 ? "block" : "mb-3 block"}>
+            {p}
+          </span>
+        ))}
+      </span>
+    );
+  }
+  if (part.type === "display") {
+    return (
+      <span key={index} className="my-2 block overflow-x-auto">
+        <BlockMath
+          math={part.value}
+          errorColor="#DC2626"
+          renderError={() => <span>{`$$${part.value}$$`}</span>}
+        />
+      </span>
+    );
+  }
+  return (
     <span key={index} className="inline">
-      <InlineMath math={part.value} errorColor="#DC2626" />
+      <InlineMath
+        math={part.value}
+        errorColor="#DC2626"
+        renderError={() => <span>{`\\(${part.value}\\)`}</span>}
+      />
     </span>
   );
 }
 
 export function MessageWithMath({ content }: { content: string }) {
-  const parts = useMemo(() => parseLatex(content), [content]);
+  const normalizedContent = useMemo(() => {
+    return (content || "")
+      .replace(/\r\n/g, "\n")
+      .replace(/[ \t]+\n/g, "\n")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+  }, [content]);
+
+  const parts = useMemo(() => parseLatex(normalizedContent), [normalizedContent]);
   return (
-    <span className="whitespace-pre-wrap [&_.katex]:text-inherit [&_.katex]:text-base">
+    <span className="whitespace-pre-wrap leading-relaxed [&_.katex]:text-inherit [&_.katex]:text-base">
       {parts.map((part, i) => renderPart(part, i))}
     </span>
   );

@@ -53,7 +53,7 @@ export function ChatInput({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.18 }}
-      className="flex items-end gap-2 rounded-3xl border border-white/40 bg-white/70 px-4 py-3 shadow-md backdrop-blur-lg"
+      className="flex min-w-0 items-end gap-2 rounded-3xl border border-white/40 bg-white/70 px-3 py-2.5 shadow-md backdrop-blur-lg md:px-4 md:py-3"
     >
       <input
         ref={fileInputRef}
@@ -108,7 +108,7 @@ export function ChatInput({
         </button>
       )}
       {attachmentLabel && (
-        <div className="flex h-9 max-w-[180px] shrink-0 items-center gap-1.5 rounded-full border border-[#E5E7EB] bg-[#FAFAFA] px-2.5 text-xs text-[#374151]">
+        <div className="flex h-9 max-w-[150px] shrink-0 items-center gap-1.5 rounded-full border border-[#E5E7EB] bg-[#FAFAFA] px-2 text-xs text-[#374151] md:max-w-[180px] md:px-2.5">
           <span className="truncate">{attachmentLabel}</span>
           {onClearAttachment && (
             <button
@@ -133,7 +133,7 @@ export function ChatInput({
         }}
         rows={1}
         placeholder={placeholder}
-        className="min-h-[44px] max-h-28 flex-1 resize-none bg-transparent px-2 py-2.5 text-[15px] text-[#1F1F1F] placeholder:text-[#9ca3af] focus:outline-none"
+        className="min-h-[44px] max-h-28 min-w-0 flex-1 resize-none bg-transparent px-2 py-2.5 text-[15px] text-[#1F1F1F] placeholder:text-[#9ca3af] focus:outline-none"
         disabled={disabled}
       />
       <button

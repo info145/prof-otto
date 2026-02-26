@@ -250,7 +250,13 @@ export default function ChatPage() {
 
   const addMessage = useCallback(
     (msg: Omit<Message, "id">) => {
+      const safeContent = (msg.content ?? "")
+        .replace(/\r\n/g, "\n")
+        .replace(/\u0000/g, "")
+        .replace(/\n{4,}/g, "\n\n\n")
+        .trim();
       const newMsg: Message = { ...msg, id: generateId() };
+      newMsg.content = safeContent;
       setMessagesBySessionId((prev) => {
         const list = prev[currentSessionId] ?? initialMessages;
         return { ...prev, [currentSessionId]: [...list, newMsg] };
@@ -551,7 +557,7 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-1 overflow-hidden">
+    <div className="flex h-full min-h-0 w-full flex-1 overflow-hidden">
       <ChatSidebar
         sessions={sessions}
         currentId={currentSessionId}
@@ -562,13 +568,13 @@ export default function ChatPage() {
         mobileOpen={sidebarOpen}
         onMobileClose={() => setSidebarOpen(false)}
       />
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-white/70">
+      <div className="grid h-full min-h-0 flex-1 grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden bg-white/70">
         <ChatHeader
           onClearChat={handleClearChat}
           hasMessages={messages.length > 1}
           onOpenSidebar={() => setSidebarOpen(true)}
         />
-        <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden bg-[#FAFAFA]/60 px-6 py-10">
+        <div className="min-h-0 overflow-y-auto overflow-x-hidden bg-[#FAFAFA]/60 px-4 py-6 md:px-6 md:py-10">
           <div className="mx-auto flex max-w-3xl flex-col gap-7">
             {messages.map((msg) => (
               <ChatBubble
@@ -584,7 +590,7 @@ export default function ChatPage() {
             <div ref={messagesEndRef} />
           </div>
         </div>
-        <div className="border-t border-[#EDEDED] bg-white/85 px-6 py-4 backdrop-blur">
+        <div className="border-t border-[#EDEDED] bg-white/85 px-3 py-3 backdrop-blur md:px-6 md:py-4">
           <motion.div
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
@@ -606,7 +612,7 @@ export default function ChatPage() {
               hasFlashcards={hasCards}
               flashcardStudyLabel="Studia flashcard"
               disabled={typing || flashcardsLoading}
-              placeholder="Scrivi un messaggio o carica un file..."
+              placeholder="Otto tentacoli, una missione: aiutarti 🫧 Da dove partiamo?"
             />
           </motion.div>
         </div>
