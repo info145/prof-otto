@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #fafafa;
+  --bg-elevated: #ffffff;
+  --accent: #ff6200;
+  --text: #111111;
+  --text-muted: #666666;
+  --border: #ededed;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(1200px 700px at 15% -10%, #fff7f2 0%, rgba(255, 247, 242, 0) 55%),
+    radial-gradient(1000px 650px at 100% 0%, #f7fbff 0%, rgba(247, 251, 255, 0) 45%),
+    var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+::selection {
+  background: rgba(255, 98, 0, 0.18);
+}
+
+@layer utilities {
+  .apple-card {
+    @apply rounded-3xl border border-[#EDEDED] bg-white/75 backdrop-blur-md;
+  }
+
+  .apple-hover {
+    @apply transition duration-200 ease-out hover:scale-[1.02];
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "name": "prof-otto",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@ai-sdk/openai": "^3.0.33",
+    "@radix-ui/react-slot": "^1.2.4",
+    "@supabase/ssr": "^0.8.0",
+    "@supabase/supabase-js": "^2.97.0",
+    "ai": "^6.0.99",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.34.3",
+    "katex": "^0.16.33",
+    "lucide-react": "^0.462.0",
+    "next": "15.0.0",
+    "openai": "^6.25.0",
+    "pdf-parse": "^1.1.1",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "react-katex": "^3.1.0",
+    "tailwind-merge": "^2.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/react": "^18.3.10",
+    "@types/react-dom": "^18.3.0",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "15.0.0",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.15",
+    "typescript": "^5.7.0"
+  }
+}
