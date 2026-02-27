@@ -205,7 +205,7 @@ export function ChatSidebar({
           ))}
         </div>
         <motion.div
-          key={curiosityIndex}
+          key={`${curiosityOrder[curiosityPointer] ?? 0}-${curiosityPointer}`}
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35 }}
