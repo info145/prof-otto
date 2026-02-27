@@ -24,25 +24,25 @@ export function ChatHeader({ onClearChat, hasMessages = false, onOpenSidebar }: 
             <Menu className="h-5 w-5" />
           </button>
         )}
-        <div className="flex flex-col gap-0.5">
+        <div className="flex w-[130px] shrink-0 flex-col gap-0.5 md:w-[170px]">
           <img
             src="https://mentor-ripetizioni.com/wp-content/uploads/2025/08/mentor.webp"
             alt="Mentor"
-            className="h-auto w-[130px] max-w-[42vw] object-contain md:w-[170px] md:max-w-[45vw]"
+            className="h-auto w-full object-contain"
           />
-          <span className="text-[10px] font-medium text-mentor-orange md:text-xs">
-            la guida che ogni studente merita
+          <span className="w-full overflow-hidden text-ellipsis whitespace-nowrap text-[10px] font-medium text-mentor-orange md:text-xs">
+            la guida che ogni docente merita
           </span>
         </div>
         <div className="flex items-center gap-1 md:hidden">
           <Badge className="h-6 bg-[#FF6200] px-2 text-[10px] text-white">BETA</Badge>
-          <span className="text-[10px] font-semibold text-[#6B7280]">1.1</span>
+          <span className="text-[10px] font-semibold text-[#6B7280]">1.2</span>
         </div>
         <div className="hidden h-8 w-px bg-[#EDEDED] md:block" />
         <div className="hidden items-center gap-2 md:flex">
           <p className="text-sm font-semibold text-[#1F1F1F]">Prof Otto</p>
           <Badge className="bg-[#FF6200] text-white">BETA</Badge>
-          <span className="text-xs font-semibold text-[#6B7280]">1.1</span>
+          <span className="text-xs font-semibold text-[#6B7280]">1.2</span>
         </div>
       </div>
       {onClearChat && (

@@ -85,8 +85,8 @@ export function ChatBubble({
         )}
       </div>
       {isUser && (
-        <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#E5E5E5] text-[10px] font-semibold text-[#1A1A1A] md:h-16 md:w-16 md:text-xs">
-          Tu
+        <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-full border border-[#E5E5E5] bg-white md:h-16 md:w-16">
+          <img src="/Einstein.jpg" alt="Profilo studente" className="h-full w-full object-cover" />
         </div>
       )}
     </motion.div>
