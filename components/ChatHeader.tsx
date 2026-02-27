@@ -30,9 +30,6 @@ export function ChatHeader({ onClearChat, hasMessages = false, onOpenSidebar }: 
             alt="Mentor"
             className="h-auto w-full object-contain"
           />
-          <span className="mx-auto w-[115px] text-center text-[9px] font-medium leading-tight text-mentor-orange md:w-[150px] md:text-[11px]">
-            la guida che ogni studente merita.
-          </span>
         </div>
         <div className="flex items-center gap-1 md:hidden">
           <Badge className="h-6 bg-[#FF6200] px-2 text-[10px] text-white">BETA</Badge>
