@@ -21,7 +21,7 @@ export function AvatarOtto({ isTyping = false, className }: AvatarOttoProps) {
       <img
         src={OTTO_AVATAR_URL}
         alt="Prof Otto"
-        className="h-10 w-10 object-contain object-center md:h-16 md:w-16"
+        className="h-10 w-10 scale-x-[-1] object-contain object-center md:h-16 md:w-16"
       />
     </motion.div>
   );
