@@ -51,7 +51,7 @@ export function ChatHeader({ onClearChat, hasMessages = false, onOpenSidebar }: 
           size="sm"
           onClick={onClearChat}
           disabled={!hasMessages}
-          className="h-8 rounded-full border-[#EDEDED] px-3 text-xs hover:border-[#FF6200]/35 hover:bg-[#FFF4EC] md:h-9 md:px-4 md:text-sm"
+          className="mentor-title h-8 rounded-full border-[#EDEDED] px-3 text-xs hover:border-[#FF6200]/35 hover:bg-[#FFF4EC] md:h-9 md:px-4 md:text-sm"
         >
           Pulisci
         </Button>

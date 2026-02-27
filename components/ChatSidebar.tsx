@@ -60,6 +60,18 @@ const CURIOSITIES: Array<{ subject: string; text: string }> = [
   },
 ];
 
+function shuffleIndexes(length: number, prevFirst: number | null = null): number[] {
+  const arr = Array.from({ length }, (_, i) => i);
+  for (let i = arr.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  if (prevFirst !== null && arr.length > 1 && arr[0] === prevFirst) {
+    [arr[0], arr[1]] = [arr[1], arr[0]];
+  }
+  return arr;
+}
+
 export function ChatSidebar({
   sessions,
   currentId,
@@ -72,23 +84,23 @@ export function ChatSidebar({
 }: ChatSidebarProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
-  const [curiosityIndex, setCuriosityIndex] = useState(() => Math.floor(Math.random() * CURIOSITIES.length));
+  const [curiosityOrder, setCuriosityOrder] = useState<number[]>(() => shuffleIndexes(CURIOSITIES.length));
+  const [curiosityPointer, setCuriosityPointer] = useState(0);
 
   useEffect(() => {
     const intervalId = window.setInterval(() => {
-      setCuriosityIndex((prev) => {
+      setCuriosityPointer((prev) => {
         if (CURIOSITIES.length <= 1) return prev;
-        let next = prev;
-        while (next === prev) {
-          next = Math.floor(Math.random() * CURIOSITIES.length);
-        }
-        return next;
+        if (prev + 1 < curiosityOrder.length) return prev + 1;
+        const currentShown = curiosityOrder[prev] ?? null;
+        setCuriosityOrder(shuffleIndexes(CURIOSITIES.length, currentShown));
+        return 0;
       });
     }, 9000);
     return () => window.clearInterval(intervalId);
-  }, []);
+  }, [curiosityOrder]);
 
-  const currentCuriosity = CURIOSITIES[curiosityIndex];
+  const currentCuriosity = CURIOSITIES[curiosityOrder[curiosityPointer] ?? 0];
 
   const handleSelect = (id: string) => {
     onSelect(id);
@@ -113,13 +125,16 @@ export function ChatSidebar({
           <X className="h-5 w-5" />
         </button>
       </div>
-      <Button onClick={handleNewChat} className="apple-hover mb-3 mt-2 h-11 w-full shrink-0 rounded-full bg-[#FF6200] text-white lg:mt-0">
+      <Button
+        onClick={handleNewChat}
+        className="mentor-title apple-hover mb-3 mt-2 h-11 w-full shrink-0 rounded-full bg-[#FF6200] text-white lg:mt-0"
+      >
         Nuova chat
       </Button>
       <Link
         href="/flashcards"
         onClick={onMobileClose}
-        className="apple-hover mb-4 flex items-center justify-center gap-2 rounded-full border border-[#EDEDED] px-4 py-2.5 text-sm font-medium text-[#1F1F1F] transition hover:bg-[#FFF0E6] hover:border-[#FF6200]/30"
+        className="mentor-title apple-hover mb-4 flex items-center justify-center gap-2 rounded-full border border-[#EDEDED] px-4 py-2.5 text-sm font-medium text-[#1F1F1F] transition hover:bg-[#FFF0E6] hover:border-[#FF6200]/30"
       >
         <BookOpen className="h-4 w-4" />
         Le mie flashcards
