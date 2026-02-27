@@ -31,7 +31,7 @@ export function ChatHeader({ onClearChat, hasMessages = false, onOpenSidebar }: 
             className="h-auto w-full object-contain"
           />
           <span className="mx-auto w-[115px] text-center text-[9px] font-medium leading-tight text-mentor-orange md:w-[150px] md:text-[11px]">
-            la guida che ogni docente merita
+            la guida che ogni studente merita.
           </span>
         </div>
         <div className="flex items-center gap-1 md:hidden">
