@@ -30,7 +30,7 @@ export function ChatHeader({ onClearChat, hasMessages = false, onOpenSidebar }: 
             alt="Mentor"
             className="h-auto w-full object-contain"
           />
-          <span className="w-full overflow-hidden text-ellipsis whitespace-nowrap text-[10px] font-medium text-mentor-orange md:text-xs">
+          <span className="mx-auto w-[115px] text-center text-[9px] font-medium leading-tight text-mentor-orange md:w-[150px] md:text-[11px]">
             la guida che ogni docente merita
           </span>
         </div>
